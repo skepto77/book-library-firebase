@@ -1,0 +1,90 @@
+<%- include("./partials/layout-start.ejs", {title: title}) %> <%-
+include("./partials/menu.ejs") %>
+
+<h1><%= title %></h1>
+
+<div class="row">
+  <div class="col-sm-5">
+    <form method="POST" id="login" class="mt-5">
+      <div class="form-group">
+        <label for="inputLogin">login</label>
+        <input
+          type="text"
+          name="login"
+          class="form-control"
+          required
+          id="inputLogin"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="inputPassword">password</label>
+        <input
+          type="password"
+          name="password"
+          class="form-control"
+          required
+          id="inputPassword"
+        />
+      </div>
+
+      <div class="form-group text-right">
+        <button type="submit" class="btn btn-primary">Log in</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.10/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.10/firebase-auth.js"></script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const firebaseConfig = {
+      apiKey: 'AIzaSyADo1QAIskao4YV-1Mn2n1ZDG_w29u0tZU',
+      authDomain: 'netology-backend.firebaseapp.com',
+      databaseURL:
+        'https://netology-backend-default-rtdb.europe-west1.firebasedatabase.app',
+      projectId: 'netology-backend',
+      storageBucket: 'netology-backend.appspot.com',
+      messagingSenderId: '1043144379811',
+      appId: '1:1043144379811:web:ce33be6968684d40de1e16',
+      measurementId: 'G-HDZJ5EFDLZ',
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+
+    document.getElementById('login').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const login = event.target.login.value;
+      const password = event.target.password.value;
+
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(login, password)
+        .then(({ user }) => {
+          return user.getIdToken().then((idToken) => {
+            localStorage.setItem('token', idToken);
+            return fetch('/api/user/login', {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ idToken }),
+            });
+          });
+        })
+        .then(() => {
+          return firebase.auth().signOut();
+        })
+        .then(() => {
+          window.location.assign('/api/user/');
+        });
+      return false;
+    });
+  });
+</script>
+
+<%- include("./partials/layout-end.ejs") %>
